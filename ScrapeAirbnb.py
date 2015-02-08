@@ -10,7 +10,7 @@ Scraping Airbnb
 import mechanize
 import cookielib
 from lxml import html
-import csv
+import unicodecsv
 import re
 from random import randint
 from time import sleep
@@ -341,37 +341,38 @@ def collectDetail(treeObject, ListingID):
         Results['Cancellation'] = PriceData['Cancellation']
         
         #Amenities
-        Am = getAmenities(treeObject, ListingID)
-        Results['A_Kitchen'] = Am['Kitchen']
-        Results['A_Internet'] = Am['Internet']
-        Results['A_TV'] = Am['TV'] 
-        Results['A_Essentials'] = Am['Essentials' ]
-        Results['A_Shampoo'] = Am['Shampoo'] 
-        Results['A_Heat'] = Am['Heating'] 
-        Results['A_AC'] = Am['Air Conditioning'] 
-        Results['A_Washer'] = Am['Washer'] 
-        Results['A_Dryer'] = Am['Dryer'] 
-        Results['A_Parking'] = Am['Free Parking on Premises'] 
-        Results['A_Internet'] = Am['Wireless Internet'] 
-        Results['A_CableTV'] = Am['Cable TV' ]
-        Results['A_Breakfast'] =  Am['Breakfast'] 
-        Results['A_Pets'] = Am['Pets Allowed'] 
-        Results['A_FamilyFriendly'] = Am['Family/Kid Friendly'] 
-        Results['A_Events'] = Am['Suitable for Events']
-        Results['A_Smoking'] = Am['Smoking Allowed'] 
-        Results['A_Wheelchair'] = Am['Wheelchair Accessible'] 
-        Results['A_Elevator'] = Am['Elevator in Building'] 
-        Results['A_Fireplace'] = Am['Indoor Fireplace' ]
-        Results['A_Intercom'] = Am['Buzzer/Wireless Intercom'] 
-        Results['A_Doorman'] = Am['Doorman'] 
-        Results['A_Pool'] = Am['Pool'] 
-        Results['A_HotTub'] = Am['Hot Tub'] 
-        Results['A_Gym'] = Am['Gym']
-        Results['A_SmokeDetector'] = Am['Smoke Detector'] 
-        Results['A_CarbonMonoxDetector'] = Am['Carbon Monoxide Detector'] 
-        Results['A_FirstAidKit'] = Am['First Aid Kit' ]
-        Results['A_SafetyCard'] = Am['Safety Card'] 
-        Results['A_FireExt'] = Am['Fire Extinguisher'] 
+        # Am = getAmenities(treeObject, ListingID)
+        # Results['A_Kitchen'] = Am['Kitchen']
+        # Results['A_Internet'] = Am['Internet']
+        # Results['A_TV'] = Am['TV'] 
+        # Results['A_Essentials'] = Am['Essentials' ]
+        # Results['A_Shampoo'] = Am['Shampoo'] 
+        # Results['A_Heat'] = Am['Heating'] 
+        # Results['A_AC'] = Am['Air Conditioning'] 
+        # Results['A_Washer'] = Am['Washer'] 
+        # Results['A_Dryer'] = Am['Dryer'] 
+        # Results['A_Parking'] = Am['Free Parking on Premises'] 
+        # Results['A_Internet'] = Am['Wireless Internet'] 
+        # Results['A_CableTV'] = Am['Cable TV' ]
+        # Results['A_Breakfast'] =  Am['Breakfast'] 
+        # Results['A_Pets'] = Am['Pets Allowed'] 
+        # Results['A_FamilyFriendly'] = Am['Family/Kid Friendly'] 
+        # Results['A_Events'] = Am['Suitable for Events']
+        # Results['A_Smoking'] = Am['Smoking Allowed'] 
+        # Results['A_Wheelchair'] = Am['Wheelchair Accessible'] 
+        # Results['A_Elevator'] = Am['Elevator in Building'] 
+        # Results['A_Fireplace'] = Am['Indoor Fireplace' ]
+        # Results['A_Intercom'] = Am['Buzzer/Wireless Intercom'] 
+        # Results['A_Doorman'] = Am['Doorman'] 
+        # Results['A_Pool'] = Am['Pool'] 
+        # Results['A_HotTub'] = Am['Hot Tub'] 
+        # Results['A_Gym'] = Am['Gym']
+        # Results['A_SmokeDetector'] = Am['Smoke Detector'] 
+        # Results['A_CarbonMonoxDetector'] = Am['Carbon Monoxide Detector'] 
+        # Results['A_FirstAidKit'] = Am['First Aid Kit' ]
+        # Results['A_SafetyCard'] = Am['Safety Card'] 
+        # Results['A_FireExt'] = Am['Fire Extinguisher']
+        
         return Results
         
     except:
@@ -756,7 +757,7 @@ def writeToCSV(resultDict, outfile):
          'S_CheckIn','S_Checkout','S_NumBeds','S_PropType','ShortDesc']
     
     with open(outfile, 'wb') as f:
-        w = csv.DictWriter(f, fieldnames=colnames)
+        w = unicodecsv.DictWriter(f, fieldnames=colnames)
         w.writeheader()
         w.writerows(resultDict)     
         
