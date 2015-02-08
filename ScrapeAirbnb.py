@@ -415,7 +415,7 @@ def getHostResponse(soup, ListingID):
     response_rate, response_time = ['Not Found'] * 2
     
     try:
-        host_member = soup.find_all("div", {"class" : "col-6"})[-1]
+        host_member = soup.find_all("div", {"class" : "col-md-6"})[-1]
         response_rate = host_member.find_all("strong")[0].text.encode('utf8')
         response_time = host_member.find_all("strong")[1].text.encode('utf8')
         return response_rate, response_time          
@@ -432,7 +432,7 @@ def getMemberDate(soup, ListingID):
     membership_date = 'Not Found'    
     
     try:
-        host_member = soup.find_all("div", {"class" : "col-6"})[-2]
+        host_member = soup.find_all("div", {"class" : "col-md-6"})[-2]
         membership_date = host_member.find_all("div")[1].text.encode('utf8').strip("\n ")
         membership_date = membership_date.replace("Member since", "")
         return membership_date
@@ -767,13 +767,13 @@ def writeToCSV(resultDict, outfile):
 if __name__ == '__main__':   
     
     #Iterate Through Main Page To Get Results
-    MainResults = IterateMainPage('Cambridge--MA', 1)
+    MainResults = IterateMainPage('New York City--NY', 1)
     
     #Take The Main Results From Previous Step and Iterate Through Each Listing
     #To add more detail
     DetailResults = iterateDetail(MainResults)
     
     #Write Out Results To CSV File, using function I defined
-    writeToCSV(DetailResults, 'CambridgeResults.csv')
+    writeToCSV(DetailResults, 'NYCResults.csv')
     
     
