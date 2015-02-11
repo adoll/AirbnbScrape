@@ -12,6 +12,7 @@ import cookielib
 from lxml import html
 import unicodecsv
 import re
+import string
 from random import randint
 from time import sleep
 from lxml.etree import tostring
@@ -265,36 +266,36 @@ def collectDetail(treeObject, ListingID):
                      'P_Weekly' : 'Not Found',
                      'P_Monthly' : 'Not Found',
                      'Cancellation' : 'Not Found',
-                     'A_Kitchen' : 0,
-                     'A_Internet' : 0,
-                     'A_TV' : 0, 
-                     'A_Essentials' : 0,
-                     'A_Shampoo' : 0,
-                     'A_Heat' : 0,
-                     'A_AC' : 0,
-                     'A_Washer' : 0,
-                     'A_Dryer' : 0,
-                     'A_Parking' : 0,
-                     'A_Internet' : 0,
-                     'A_CableTV' : 0,
-                     'A_Breakfast' :  0,
-                     'A_Pets' : 0,
-                     'A_FamilyFriendly' : 0,
-                     'A_Events' : 0,
-                     'A_Smoking' : 0,
-                     'A_Wheelchair' : 0,
-                     'A_Elevator' : 0,
-                     'A_Fireplace' : 0,
-                     'A_Intercom' : 0,
-                     'A_Doorman' : 0, 
-                     'A_Pool' : 0,
-                     'A_HotTub' : 0,
-                     'A_Gym' : 0,
-                     'A_SmokeDetector' : 0,
-                     'A_CarbonMonoxDetector' : 0,
-                     'A_FirstAidKit' : 0,
-                     'A_SafetyCard' : 0,
-                     'A_FireExt' : 0, 
+                     # 'A_Kitchen' : 0,
+                     # 'A_Internet' : 0,
+                     # 'A_TV' : 0, 
+                     # 'A_Essentials' : 0,
+                     # 'A_Shampoo' : 0,
+                     # 'A_Heat' : 0,
+                     # 'A_AC' : 0,
+                     # 'A_Washer' : 0,
+                     # 'A_Dryer' : 0,
+                     # 'A_Parking' : 0,
+                     # 'A_Internet' : 0,
+                     # 'A_CableTV' : 0,
+                     # 'A_Breakfast' :  0,
+                     # 'A_Pets' : 0,
+                     # 'A_FamilyFriendly' : 0,
+                     # 'A_Events' : 0,
+                     # 'A_Smoking' : 0,
+                     # 'A_Wheelchair' : 0,
+                     # 'A_Elevator' : 0,
+                     # 'A_Fireplace' : 0,
+                     # 'A_Intercom' : 0,
+                     # 'A_Doorman' : 0, 
+                     # 'A_Pool' : 0,
+                     # 'A_HotTub' : 0,
+                     # 'A_Gym' : 0,
+                     # 'A_SmokeDetector' : 0,
+                     # 'A_CarbonMonoxDetector' : 0,
+                     # 'A_FirstAidKit' : 0,
+                     # 'A_SafetyCard' : 0,
+                     # 'A_FireExt' : 0, 
                      'S_PropType' : 'Not Found',
                      'S_Accomodates' : 'Not Found',
                      'S_Bedrooms' : 'Not Found',
@@ -742,13 +743,13 @@ def getAmenities(tree, ListingID):
 #### Save Results ####################
 def writeToCSV(resultDict, outfile):
     
-    colnames = [ 'ListingID', 'Title','UserID','baseurl',  'Price', \
+    colnames = [ 'ListingID', 'Title','UserID','baseurl', 'Zipcode', 'Price', \
         'AboutListing','HostName', 'MemberDate', 'Lat','Long','BookInstantly','Cancellation',  \
         'OverallCounter','PageCounter','PageNumber', \
-         'A_AC','A_Breakfast','A_CableTV','A_CarbonMonoxDetector','A_Doorman','A_Dryer','A_TV', \
-         'A_Elevator','A_Essentials','A_Events','A_FamilyFriendly','A_FireExt','A_Fireplace','A_FirstAidKit', \
-         'A_Gym','A_Heat','A_HotTub','A_Intercom','A_Internet','A_Kitchen','A_Parking','A_Pets','A_Pool','A_SafetyCard', \
-         'A_Shampoo','A_SmokeDetector','A_Smoking','A_Washer','A_Wheelchair', \
+         # 'A_AC','A_Breakfast','A_CableTV','A_CarbonMonoxDetector','A_Doorman','A_Dryer','A_TV', \
+         # 'A_Elevator','A_Essentials','A_Events','A_FamilyFriendly','A_FireExt','A_Fireplace','A_FirstAidKit', \
+         # 'A_Gym','A_Heat','A_HotTub','A_Intercom','A_Internet','A_Kitchen','A_Parking','A_Pets','A_Pool','A_SafetyCard', \
+         # 'A_Shampoo','A_SmokeDetector','A_Smoking','A_Washer','A_Wheelchair', \
          'P_Cleaning','P_Deposit','P_ExtraPeople','P_Monthly','P_Weekly', \
          'R_CI','R_acc','R_clean','R_comm', \
          'R_loc','R_val', \
@@ -756,9 +757,8 @@ def writeToCSV(resultDict, outfile):
          'S_Accomodates','S_Bathrooms','S_BedType','S_Bedrooms', \
          'S_CheckIn','S_Checkout','S_NumBeds','S_PropType','ShortDesc']
     
-    with open(outfile, 'wb') as f:
+    with open(outfile, 'ab') as f:
         w = unicodecsv.DictWriter(f, fieldnames=colnames)
-        w.writeheader()
         w.writerows(resultDict)     
         
 #######################################
@@ -766,15 +766,37 @@ def writeToCSV(resultDict, outfile):
 #######################################
 
 if __name__ == '__main__':   
+    f = open('nyczips.txt', 'r')
+    progress = open('completed.txt', 'w')
+    colnames = [ 'ListingID', 'Title','UserID','baseurl', 'Zipcode', 'Price', \
+        'AboutListing','HostName', 'MemberDate', 'Lat','Long','BookInstantly','Cancellation',  \
+        'OverallCounter','PageCounter','PageNumber', \
+         # 'A_AC','A_Breakfast','A_CableTV','A_CarbonMonoxDetector','A_Doorman','A_Dryer','A_TV', \
+         # 'A_Elevator','A_Essentials','A_Events','A_FamilyFriendly','A_FireExt','A_Fireplace','A_FirstAidKit', \
+         # 'A_Gym','A_Heat','A_HotTub','A_Intercom','A_Internet','A_Kitchen','A_Parking','A_Pets','A_Pool','A_SafetyCard', \
+         # 'A_Shampoo','A_SmokeDetector','A_Smoking','A_Washer','A_Wheelchair', \
+         'P_Cleaning','P_Deposit','P_ExtraPeople','P_Monthly','P_Weekly', \
+         'R_CI','R_acc','R_clean','R_comm', \
+         'R_loc','R_val', \
+         'RespRate','RespTime', \
+         'S_Accomodates','S_Bathrooms','S_BedType','S_Bedrooms', \
+         'S_CheckIn','S_Checkout','S_NumBeds','S_PropType','ShortDesc']
     
-    #Iterate Through Main Page To Get Results
-    MainResults = IterateMainPage('New York City--NY', 1)
-    
-    #Take The Main Results From Previous Step and Iterate Through Each Listing
-    #To add more detail
-    DetailResults = iterateDetail(MainResults)
-    
-    #Write Out Results To CSV File, using function I defined
-    writeToCSV(DetailResults, 'NYCResults.csv')
+    with open('NYCResults.csv', 'ab') as f1:
+        w = unicodecsv.DictWriter(f1, fieldnames=colnames)
+        w.writeheader()
+
+    for line in f:
+        zip = string.rstrip(line)
+        #Iterate Through Main Page To Get Results
+        MainResults = IterateMainPage(zip, 5)
+        for entry in MainResults:
+            entry['Zipcode'] = zip
+        #Take The Main Results From Previous Step and Iterate Through Each Listing
+        #To add more detail
+        DetailResults = iterateDetail(MainResults)
+        #Write Out Results To CSV File, using function I defined
+        writeToCSV(DetailResults, 'NYCResults.csv')
+        progress.write(line)
     
     
