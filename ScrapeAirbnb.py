@@ -17,7 +17,7 @@ from random import randint
 from time import sleep
 from lxml.etree import tostring
 import bs4
-
+import math
 
 
 # Browser
@@ -48,7 +48,24 @@ br.addheaders = [('User-agent',
 #  Wrapper Functions    ###############
 #######################################
 
-def IterateMainPage(location_string, loop_limit): 
+
+def GetNumResults(location_string, price_min, price_max=""):
+    base_url = 'https://www.airbnb.com/s/'
+    page_url = '?page='
+    min_url = '&price_min='
+    if price_max != "":
+        max_url = '&price_max='
+    else:
+        max_url = ""
+    current_url = ''.join([base_url, location_string, page_url, str(1), min_url, price_min, max_url, price_max])
+    tree = html.fromstring(br.open(current_url).get_data())
+    soup = TreeToSoup(tree);
+    numListings = soup.find_all("h1", {"class" : "results-count"})[0].text.strip("\n ").encode('utf8')
+    numListings = numListings.replace("+", " ")
+    numListings = numListings.split(" ")
+    return int(numListings[0])
+
+def IterateMainPage(location_string, price_min='0', price_max='', loop_limit=56): 
     MainResults = []
     """
     input: 
@@ -67,20 +84,21 @@ def IterateMainPage(location_string, loop_limit):
     Other functions will take the output from this function and iterate over them to explore
     the details of individual listings.  
     """  
-        
     base_url = 'https://www.airbnb.com/s/'
     page_url = '?page='
-    
-    
+    min_url = '&price_min='
+    if price_max != "":
+        max_url = '&price_max='
+    else:
+        max_url = ""
+
     try:
         for n in range(1, loop_limit+1):
             print 'Processing Main Page %s out of %s' % (str(n), str(loop_limit))
             #Implement random time delay for scraping
             sleep(randint(0,2))
-            current_url = ''.join([base_url, location_string, page_url, str(n)])
+            current_url = ''.join([base_url, location_string, page_url, str(1), min_url, price_min, max_url, price_max])
             MainResults += ParseMainXML(current_url, n)
-        
-            
     except:
         print 'This URL did not return results: %s ' % current_url
     
@@ -756,47 +774,61 @@ def writeToCSV(resultDict, outfile):
          'RespRate','RespTime', \
          'S_Accomodates','S_Bathrooms','S_BedType','S_Bedrooms', \
          'S_CheckIn','S_Checkout','S_NumBeds','S_PropType','ShortDesc']
-    
+    # with open('NYCResults.csv', 'ab') as f1:
+    #     w = unicodecsv.DictWriter(f1, fieldnames=colnames)
+    #     w.writeheader()
+
     with open(outfile, 'ab') as f:
         w = unicodecsv.DictWriter(f, fieldnames=colnames)
         w.writerows(resultDict)     
-        
+
+def checkFeasibility(zipC, interval, max_max):
+    for min_price in xrange(0, max_max, interval):
+        count = GetNumResults(zipC, str(min_price), str(min_price + interval))
+        if count == 1000:
+            return False
+    count = GetNumResults(zipC, str(max_max))
+    if count == 1000:
+        return False
+    return True
+
+def processAndLog(zipC, min_price, max_price):
+    count = GetNumResults(zipC, min_price, max_price)
+    loop_limit = int(math.ceil(count/18.0))
+    #Iterate Through Main Page To Get Results
+    MainResults = IterateMainPage(zipC, min_price, max_price, loop_limit)
+    for entry in MainResults:
+        entry['Zipcode'] = zipC
+    #Take The Main Results From Previous Step and Iterate Through Each Listing
+    #To add more detail
+    DetailResults = iterateDetail(MainResults)
+    #Write Out Results To CSV File, using function I defined
+    writeToCSV(DetailResults, 'NYCResults.csv')
+
 #######################################
 #  Testing ############################
 #######################################
 
 if __name__ == '__main__':   
-    f = open('nyczips.txt', 'r')
+    f = open('over1000.txt', 'r')
     progress = open('completed.txt', 'w')
-    colnames = [ 'ListingID', 'Title','UserID','baseurl', 'Zipcode', 'Price', \
-        'AboutListing','HostName', 'MemberDate', 'Lat','Long','BookInstantly','Cancellation',  \
-        'OverallCounter','PageCounter','PageNumber', \
-         # 'A_AC','A_Breakfast','A_CableTV','A_CarbonMonoxDetector','A_Doorman','A_Dryer','A_TV', \
-         # 'A_Elevator','A_Essentials','A_Events','A_FamilyFriendly','A_FireExt','A_Fireplace','A_FirstAidKit', \
-         # 'A_Gym','A_Heat','A_HotTub','A_Intercom','A_Internet','A_Kitchen','A_Parking','A_Pets','A_Pool','A_SafetyCard', \
-         # 'A_Shampoo','A_SmokeDetector','A_Smoking','A_Washer','A_Wheelchair', \
-         'P_Cleaning','P_Deposit','P_ExtraPeople','P_Monthly','P_Weekly', \
-         'R_CI','R_acc','R_clean','R_comm', \
-         'R_loc','R_val', \
-         'RespRate','RespTime', \
-         'S_Accomodates','S_Bathrooms','S_BedType','S_Bedrooms', \
-         'S_CheckIn','S_Checkout','S_NumBeds','S_PropType','ShortDesc']
+    uncompleted = open('unfinished.txt', 'w')
+    interval = 25
+    max_max = 250
     
-    with open('NYCResults.csv', 'ab') as f1:
-        w = unicodecsv.DictWriter(f1, fieldnames=colnames)
-        w.writeheader()
-
     for line in f:
-        zip = string.rstrip(line)
-        #Iterate Through Main Page To Get Results
-        MainResults = IterateMainPage(zip, 5)
-        for entry in MainResults:
-            entry['Zipcode'] = zip
-        #Take The Main Results From Previous Step and Iterate Through Each Listing
-        #To add more detail
-        DetailResults = iterateDetail(MainResults)
-        #Write Out Results To CSV File, using function I defined
-        writeToCSV(DetailResults, 'NYCResults.csv')
-        progress.write(line)
+        zipC = string.rstrip(line)
+        feasible = checkFeasibility(zipC, interval, max_max)
+        if feasible:
+            print zipC + " is feasible"
+            for min_price in xrange(0, max_max, interval):
+                processAndLog(zipC, str(min_price), str(min_price + interval))
+            processAndLog(zipC, str(max_max), '')
+            progress.write(line)
+            progress.flush()
+        else:
+            print zipC + " is infeasible"
+            uncompleted.write(line)
+            uncompleted.flush()
     
     
